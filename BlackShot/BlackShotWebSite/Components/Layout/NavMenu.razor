@@ -1,0 +1,54 @@
+﻿@rendermode InteractiveServer
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">BlackShot Rebirth</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-browser-edge" aria-hidden="true"></span> Inicio
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" @onclick="() => NavMenuAccount = !NavMenuAccount">
+                <span class="bi bi-person-fill" aria-hidden="true"></span> Contas
+            </NavLink>
+
+            @if (NavMenuAccount)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="createaccount">
+                        <span class="bi bi-person-fill-add" aria-hidden="true" style="font-size: 1.5em; vertical-align: middle;"></span> Criar Conta
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="accountrecovery">
+                        <span class="bi bi-envelope-exclamation-fill" aria-hidden="true" style="font-size: 1.5em; vertical-align: middle;"></span> Recuperar Conta
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="accountlist">
+                        <span class="bi bi-list-columns-reverse" aria-hidden="true" style="font-size: 1.5em; vertical-align: middle;"></span> Dados Contas
+                    </NavLink>
+                </div>
+            }
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="changelog">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Atualizações
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+
+@code {
+    private bool NavMenuAccount = false;
+}

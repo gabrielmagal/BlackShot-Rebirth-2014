@@ -1,0 +1,19 @@
+﻿.center-content {
+    text-align: center; /* Centraliza todo o conteúdo textual */
+    margin: auto;
+    width: 80%; /* Ajuste conforme necessário */
+}
+
+.centered-text {
+    color: white; /* Ajuste a cor conforme o tema do seu site */
+    font-size: 16px; /* Tamanho do texto */
+    max-width: 100%; /* Limita a largura do texto */
+    word-wrap: break-word; /* Garante que o texto quebre corretamente */
+}
+
+.img-fluid {
+    max-width: 20%; /* Limita a largura máxima da imagem */
+    height: auto; /* Mantém a proporção da imagem */
+    display: block; /* Torna a imagem um bloco para permitir margem automática */
+    margin: 20px auto; /* Centraliza a imagem horizontalmente */
+}

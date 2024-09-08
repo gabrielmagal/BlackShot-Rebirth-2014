@@ -1,0 +1,71 @@
+﻿@page "/changelog"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+
+<PageTitle>Atualizações</PageTitle>
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Pesquisar" @bind="@searchTerm">
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Versão</th>
+            <th>Informação da atualização</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var changelog in FilteredChangelogs)
+        {
+            <tr>
+                <td>@changelog.Version</td>
+                <td>@changelog.Information</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<ChangelogModel> changelogModels = [];
+    private string? searchTerm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(1);
+
+        changelogModels = new List<ChangelogModel>
+        {
+            new ChangelogModel("1.0.0", "Authentication Mapping"),
+            new ChangelogModel("1.0.1", "Server tab mapping"),
+            new ChangelogModel("1.0.2", "Lobby Mapping"),
+            new ChangelogModel("1.0.3", "Weapon Mapping"),
+            new ChangelogModel("1.0.4", "Account creation"),
+            new ChangelogModel("1.0.5", "User accounts now managed by Keycloak"),
+            new ChangelogModel("1.0.6", "Added email account recovery"),
+        };
+    }
+
+    private List<ChangelogModel> FilteredChangelogs
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return changelogModels.Take(10).ToList();
+            else
+                return changelogModels.Where(c => c.Version.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || c.Information.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).Take(10).ToList();
+        }
+    }
+
+    private class ChangelogModel
+    {
+        public string Version { get; set; }
+        public string Information { get; set; }
+
+        public ChangelogModel(string version, string information)
+        {
+            Version = version;
+            Information = information;
+        }
+    }
+}

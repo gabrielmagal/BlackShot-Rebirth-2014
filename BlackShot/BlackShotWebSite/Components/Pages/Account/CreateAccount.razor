@@ -1,0 +1,104 @@
+﻿@page "/createaccount"
+@using BlackShotWebSite.Dto
+@using Core
+@rendermode InteractiveServer
+@inject IJSRuntime jsruntime
+
+<PageTitle>Criação de Contas</PageTitle>
+
+<div class="form-group">
+    <label for="email">Email (apenas Gmail, Outlook ou Hotmail):</label>
+    <input type="email" class="form-control dark-theme" id="email" @bind="accountDto.Email" style="width: 300px;">
+    @if (string.IsNullOrEmpty(accountDto.Email))
+    {
+        <div class="text-danger">Por favor, insira um e-mail.</div>
+    }
+    else if (!IsEmailValido(accountDto.Email))
+    {
+        <div class="text-danger">Formato de e-mail não permitido. Valores aceitos: 'gmail.com', 'outlook.com', 'hotmail.com'.</div>
+    }
+</div>
+
+<div class="form-group">
+    <label for="login">Login (máximo 10 caracteres):</label>
+    <input type="text" class="form-control dark-theme" id="login" @bind="accountDto.Username" maxlength="10" style="width: 300px;">
+    @if (string.IsNullOrEmpty(accountDto.Username))
+    {
+        <div class="text-danger">Por favor, insira um login.</div>
+    }
+</div>
+
+<div class="form-group">
+    <label for="password">Senha (máximo 10 caracteres):</label>
+    <div class="input-group" style="width: 300px;">
+        <input type="@senhaTipo" class="form-control dark-theme" id="password" @bind="accountDto.Password" maxlength="10">
+        <div class="input-group-append">
+            <button class="btn btn-secondary" type="button" @onclick="GerarSenha">Gerar Senha</button>
+        </div>
+    </div>
+    @if (string.IsNullOrEmpty(accountDto.Password))
+    {
+        <div class="text-danger">Por favor, insira uma senha.</div>
+    }
+</div>
+
+<br />
+
+<br />
+
+<button type="button" @onclick="CriarConta" class="btn btn-primary dark-theme">Criar Conta</button>
+
+@code {
+    private AccountDto accountDto = new();
+    private string senhaTipo = "password";
+
+    private async Task CriarConta()
+    {
+        if (string.IsNullOrEmpty(accountDto.Username))
+        {
+            await jsruntime.ToastrError("Por favor, insira um login.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(accountDto.Email))
+        {
+            await jsruntime.ToastrError("Por favor, insira um e-mail.");
+            return;
+        }
+
+        if (!IsEmailValido(accountDto.Email))
+        {
+            await jsruntime.ToastrError("Formato de e-mail não permitido. Valores aceitos: 'gmail.com', 'outlook.com', 'hotmail.com'.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(accountDto.Password))
+        {
+            await jsruntime.ToastrError("Por favor, insira uma senha.");
+            return;
+        }
+
+        try
+        {
+            KeycloakService.CreateUserAsync(accountDto.Username, accountDto.Password, accountDto.Email);
+            await jsruntime.ToastrSuccess("Conta criada com sucesso. Agora entre em seu e-mail e confirme sua conta.");
+        }
+        catch(Exception ex)
+        {
+            await jsruntime.ToastrError(ex.Message);
+        }
+    }
+
+    private bool IsEmailValido(string email)
+    {
+        var regex = new System.Text.RegularExpressions.Regex(@"@(gmail\.com|outlook\.com|hotmail\.com)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return regex.IsMatch(email);
+    }
+
+    private void GerarSenha()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*&%()-_=+!@#$/abcdefghijklmnopqrstuvwxyz0123456789";
+        accountDto.Password = new string(Enumerable.Repeat(chars, 10).Select(s => s[new Random().Next(s.Length)]).ToArray());
+        senhaTipo = "text"; // Deixar a senha visivel
+    }
+}

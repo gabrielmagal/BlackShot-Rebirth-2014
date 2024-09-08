@@ -1,0 +1,127 @@
+﻿@page "/accountlist"
+@rendermode InteractiveServer
+@using Core
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.JSInterop
+@using static Core.KeycloakService
+@inject IJSRuntime jsruntime
+@inject ApplicationDbContext applicationDbContext
+
+<PageTitle>Dados Contas</PageTitle>
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Pesquisar" @bind="@searchTerm">
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Nome do usuário</th>
+                <th>Banido</th>
+                <th>Apelido (NickName)</th>
+                <th>Experiencia</th>
+                <th>Kills</th>
+                <th>Deaths</th>
+                <th>BP</th>
+                <th>BSC</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var conta in PaginatedAccounts)
+            {
+                <tr>
+                    <td data-label="Nome do usuário">@conta.user.username</td>
+                    <td data-label="Banido">@(conta.user.enabled ? "Não" : "Sim")</td>
+                    @if (conta.characterInfoModel != null)
+                    {
+                        <td data-label="Apelido (NickName)">@conta.characterInfoModel.Nickname</td>
+                        <td data-label="Experiencia">@conta.characterInfoModel.Experience</td>
+                        <td data-label="Kills">@conta.characterInfoModel.Kills</td>
+                        <td data-label="Deaths">@conta.characterInfoModel.Deaths</td>
+                        <td data-label="BP">@conta.characterInfoModel.BountyPoints</td>
+                        <td data-label="BSC">@conta.characterInfoModel.PlayerCash</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<span class="page-info">Página @currentPage de @TotalPages. Quantidade de contas: @usersCharacterInfoModel.Count()</span>
+
+<div class="pagination">
+    <button class="btn btn-dark" disabled="@IsFirstPage()" @onclick="GoToFirstPage">Primeira</button>
+    <button class="btn btn-dark" disabled="@IsFirstPage()" @onclick="GoToPreviousPage">Anterior</button>
+    <button class="btn btn-dark" disabled="@IsLastPage()" @onclick="GoToNextPage">Próxima</button>
+    <button class="btn btn-dark" disabled="@IsLastPage()" @onclick="GoToLastPage">Última</button>
+</div>
+
+@code {
+    private List<UserCharacterInfoModel> usersCharacterInfoModel = [];
+    private List<UserCharacterInfoModel> PaginatedAccounts => FilteredAccounts.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+
+    private string? searchTerm;
+    private int pageSize = 6;
+    private int currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(1);
+        var usersKeycloak = KeycloakService.GetUsersAsync();
+        foreach (var userKeycloak in usersKeycloak)
+        {
+            var userCharacterInfoModel = new UserCharacterInfoModel();
+            var userDb = applicationDbContext.CharacterInfoModel.AsNoTracking().FirstOrDefault(u => u.AccountNumber == Guid.Parse(userKeycloak.id));
+            if (userDb != null)
+            {
+                userCharacterInfoModel.characterInfoModel = userDb;
+            }
+            userCharacterInfoModel.user = userKeycloak;
+            usersCharacterInfoModel.Add(userCharacterInfoModel);
+        }
+    }
+
+    private List<UserCharacterInfoModel> FilteredAccounts
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return usersCharacterInfoModel;
+            else
+                return usersCharacterInfoModel
+                        .Where(c => c.user.username.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || (c.characterInfoModel != null && c.characterInfoModel.Nickname.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
+        }
+    }
+
+    private bool IsFirstPage() => currentPage == 1;
+    private bool IsLastPage() => currentPage == TotalPages;
+    private int TotalPages => (int)Math.Ceiling((double)usersCharacterInfoModel.Count() / pageSize);
+
+    private void GoToFirstPage()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (!IsFirstPage())
+        {
+            currentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (!IsLastPage())
+        {
+            currentPage++;
+        }
+    }
+
+    private void GoToLastPage()
+    {
+        currentPage = TotalPages;
+    }
+}

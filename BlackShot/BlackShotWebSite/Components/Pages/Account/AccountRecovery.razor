@@ -1,0 +1,28 @@
+﻿@page "/accountrecovery"
+@using Core
+@rendermode InteractiveServer
+@inject IJSRuntime jsruntime
+
+<PageTitle>Recuperação de conta</PageTitle>
+
+<div class="input-group" style="width: 500px;">
+    <input type="text" class="form-control" placeholder="Email" @bind="email">
+    <button class="btn btn-dark" @onclick="SendMail">Enviar email</button>
+</div>
+
+@code {
+    private string? email;
+
+    private async Task SendMail()
+    {
+        try
+        {
+            KeycloakService.SendPasswordResetEmailAsync(email);
+            await jsruntime.ToastrSuccess("E-mail enviado com sucesso para recuperação de conta.");
+        }
+        catch (Exception ex)
+        {
+            await jsruntime.ToastrError(ex.Message);
+        }
+    }
+}
