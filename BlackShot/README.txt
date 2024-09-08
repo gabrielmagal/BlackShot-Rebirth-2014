@@ -1,0 +1,1 @@
+Para dar build no projeto e subir tudo para o docker use: docker-compose up --build
